@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personalized Course Recommendations</title>
+    <style>
+        /* Set the canvas to fill the entire page */
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow-y: scroll;  /* Allow vertical scrolling */
+            height: 100%;
+        }
+
+        #background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .container {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            color: white;
+            font-family: Arial, sans-serif;
+            padding-top: 50px;
+        }
+
+        .box {
+            position: relative;
+            background: rgba(0, 0, 0, 0.5);  /* Transparent background with 50% opacity */
+            padding: 40px;
+            border-radius: 10px;
+            display: inline-block;
+            text-align: left;
+            width: 500px; /* Increased width of the box */
+            margin: 0 auto;
+            max-width: 100%; /* Ensure the box resizes in mobile view */
+            box-sizing: border-box;
+            margin-top: 100px;
+        }
+
+        h1 {
+            color: white;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        label, input, button {
+            margin: 10px 0;
+            padding: 10px;
+            font-size: 16px;
+            width: 100%;
+            display: block;
+        }
+
+        button {
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        input[type="number"], button {
+            box-sizing: border-box;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="background"></div> <!-- Three.js Dynamic Background -->
+    <div class="container">
+        <div class="box">
+            <h1>Enter Student Data for Course Recommendations</h1>
+            <form action="/predict" method="POST">
+                <label for="interaction_count">Number of Interactions:</label>
+                <input type="number" name="interaction_count" required><br><br>
+
+                <label for="quiz_scores">Quiz Scores:</label>
+                <input type="number" step="0.1" name="quiz_scores" required><br><br>
+
+                <label for="completion_rate">Course Completion Rate:</label>
+                <input type="number" step="0.1" name="completion_rate" required><br><br>
+
+                <button type="submit">Get Recommendations</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Include Three.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Create the scene, camera, and renderer for Three.js dynamic background
+        var scene = new THREE.Scene();
+        var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        var renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('background').appendChild(renderer.domElement);
+
+        // Create a rotating cube as a dynamic background
+        var geometry = new THREE.BoxGeometry();
+        var material = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
+        var cube = new THREE.Mesh(geometry, material);
+        scene.add(cube);
+
+        camera.position.z = 5;
+
+        // Animation loop to rotate the cube
+        function animate() {
+            requestAnimationFrame(animate);
+            cube.rotation.x += 0.01;
+            cube.rotation.y += 0.01;
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // Adjust the canvas size when the window is resized
+        window.addEventListener('resize', function() {
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+        });
+    </script>
+</body>
+</html>
