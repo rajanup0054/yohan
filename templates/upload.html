@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload File</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1c1c1c;
+            color: #ffffff;
+            text-align: center;
+        }
+        h1 {
+            animation: fadeIn 1.5s ease;
+        }
+        .upload-box {
+            border: 2px dashed #4CAF50;
+            padding: 30px;
+            margin: 50px auto;
+            width: 300px;
+            border-radius: 10px;
+            animation: bounce 1s infinite;
+        }
+        .upload-box:hover {
+            animation: none;
+        }
+        input[type="file"] {
+            color: #4CAF50;
+        }
+        .hover-effect:hover {
+            transform: scale(1.1);
+            background-color: #4CAF50;
+            color: #ffffff;
+            cursor: pointer;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body>
+    <h1>Upload Student Data</h1>
+    <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data">
+        <div class="upload-box">
+            <label for="file">Select file:</label>
+            <input type="file" name="file" class="hover-effect">
+        </div>
+        <button type="submit" class="hover-effect">Upload</button>
+    </form>
+</body>
+</html>

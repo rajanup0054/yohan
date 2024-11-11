@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student List</title>
+    <style>
+        /* Add the 3D background effect here */
+        body::before, body::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 200%;
+            height: 200%;
+            z-index: -1;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 1%, transparent 1%);
+            background-size: 50px 50px;
+            animation: animateBackground 30s linear infinite;
+            opacity: 0.2;
+        }
+
+        body::after {
+            animation-direction: reverse;
+        }
+
+        @keyframes animateBackground {
+            from { transform: translateX(0) translateY(0); }
+            to { transform: translateX(-50px) translateY(-50px); }
+        }
+
+        /* Additional styles for table and animations */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1c1c1c;
+            color: #ffffff;
+            text-align: center;
+            overflow: hidden;
+            position: relative;
+        }
+        /* Remaining styles */
+    </style>
+</head>
+<body>
+    <h1 class="slide-down">Student List</h1>
+    <table class="fade-in">
+        <thead>
+            <tr>
+                <th>Student Name</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for student in students %}
+            <tr class="slide-down">
+                <td>{{ student['Name'] }}</td>
+                <td><a href="{{ url_for('view', student_name=student['Name']) }}" class="hover-grow">View</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

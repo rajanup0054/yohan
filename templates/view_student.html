@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Student</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1c1c1c;
+            color: #ffffff;
+            text-align: center;
+        }
+        .student-name {
+            font-size: 24px;
+            font-weight: bold;
+            animation: pulse 1s infinite;
+        }
+        .course-list {
+            margin: 20px;
+            animation: slideIn 1s ease-out;
+        }
+        .course-item:hover {
+            color: #4CAF50;
+            transform: scale(1.1);
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <h1>Student Details</h1>
+    <div class="student-name">{{ student['Name'] }}</div>
+    <h2>Recommended Courses</h2>
+    <div class="course-list">
+        {% for course in recommended_courses %}
+        <div class="course-item">{{ course }}</div>
+        {% endfor %}
+    </div>
+</body>
+</html>
