@@ -1,14 +1,16 @@
-from flask import Flask, request, render_template, redirect, url_for, session
+from flask import Flask, request, render_template, redirect, url_for, send_file, jsonify
 import pandas as pd
 import pickle
 import os
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
+app = Flask(__name__)
 
 # Load the trained model
 with open("model.pkl", "rb") as file:
     model = pickle.load(file)
-
-app = Flask(__name__)
-app.secret_key = os.urandom(24)  # Set a secret key for session management
 
 # Sample courses based on engagement level predictions
 course_recommendations = {
@@ -17,62 +19,99 @@ course_recommendations = {
     2: ["Advanced Calculus", "Literature Analysis", "Physics Principles"]
 }
 
-# Route to upload the Excel file
+# Root route redirecting to upload page
 @app.route('/')
 def home():
-    return render_template("upload.html")
+    return redirect(url_for('upload_file'))
 
-@app.route('/upload', methods=['POST'])
+# Route for file upload
+@app.route('/upload', methods=['GET', 'POST'])
 def upload_file():
-    try:
-        # Check if file is part of the request
-        if 'file' not in request.files:
-            return "No file part"
-        
+    if request.method == 'POST':
         file = request.files['file']
-        
-        # If no file is selected, redirect to the home page
-        if file.filename == '':
-            return redirect(request.url)
-        
-        # Read the Excel file
-        df = pd.read_excel(file)
+        if file:
+            students_df = pd.read_excel(file)
+            students_df.to_csv("students.csv", index=False)  # Save for reference
+            students = []
+            for _, row in students_df.iterrows():
+                student_data = {
+                    "Name": row['Name'],
+                    "interaction_count": row['interaction_count'],
+                    "quiz_scores": row['quiz_scores'],
+                    "completion_rate": row['completion_rate'],
+                    "parent_email": row['parent_email']
+                }
+                students.append(student_data)
+            return render_template('student_list.html', students=students)
+    return render_template('upload.html')
 
-        # Ensure the required columns exist in the uploaded file
-        required_columns = ['Name', 'interaction_count', 'quiz_scores', 'completion_rate', 'parent_email']
-        if not all(col in df.columns for col in required_columns):
-            return "Missing required columns in the file"
+# Route for student details view
+@app.route('/view_student/<student_name>')
+def view_student(student_name):
+    students_df = pd.read_csv("students.csv")
+    student_data = students_df[students_df["Name"] == student_name].iloc[0].to_dict()
+    student_df = pd.DataFrame([[student_data['interaction_count'], student_data['quiz_scores'], student_data['completion_rate']]],
+                              columns=["interaction_count", "quiz_scores", "completion_rate"])
+    engagement_level = model.predict(student_df)[0]
+    recommended_courses = course_recommendations[engagement_level]
+    return render_template("view_student.html", student_data=student_data, recommended_courses=recommended_courses)
 
-        # Store the student data in session
-        session['students'] = df.to_dict(orient='records')
+# Route to download performance card
+@app.route('/download_card/<student_name>')
+def download_card(student_name):
+    students_df = pd.read_csv("students.csv")
+    student_data = students_df[students_df["Name"] == student_name].iloc[0].to_dict()
+    
+    card_content = f"""
+    Performance Card for {student_name}
+    ---------------------------------
+    Interaction Count: {student_data['interaction_count']}
+    Quiz Scores: {student_data['quiz_scores']}
+    Completion Rate: {student_data['completion_rate']}
+    Parent Email: {student_data['parent_email']}
+    """
+    card_file = f"{student_name}_performance_card.txt"
+    with open(card_file, "w") as f:
+        f.write(card_content)
+    
+    return send_file(card_file, as_attachment=True)
 
-        return render_template("student_list.html", students=session['students'])
-    except Exception as e:
-        return f"An error occurred: {e}"
-
-# Route to view the recommended courses for a specific student
-@app.route('/view/<student_name>')
-def view(student_name):
+# Route to send email
+@app.route('/send_email/<student_name>')
+def send_email(student_name):
+    students_df = pd.read_csv("students.csv")
+    student_data = students_df[students_df["Name"] == student_name].iloc[0].to_dict()
+    parent_email = student_data["parent_email"]
     try:
-        # Retrieve students data from session
-        students = session.get('students', [])
+        sender_email = "akumarnayak50@gmail.com"
+        sender_password = "qvjthqhfwzpeyyvh"
+        subject = f"Performance Update for {student_name}"
+        body = f"""
+        Dear Parent,
 
-        # Find the student in the list
-        student = next(student for student in students if student['Name'] == student_name)
+        Please find below the performance update for {student_name}:
+        Interaction Count: {student_data['interaction_count']}
+        Quiz Scores: {student_data['quiz_scores']}
+        Completion Rate: {student_data['completion_rate']}
+        
+        Regards,
+        School Administration
+        """
 
-        # Prepare the data for the model prediction
-        student_data = pd.DataFrame([[student['interaction_count'], student['quiz_scores'], student['completion_rate']]],
-                                    columns=["interaction_count", "quiz_scores", "completion_rate"])
+        msg = MIMEMultipart()
+        msg['From'] = sender_email
+        msg['To'] = parent_email
+        msg['Subject'] = subject
+        msg.attach(MIMEText(body, 'plain'))
 
-        # Predict the engagement level
-        engagement_level = model.predict(student_data)[0]
+        with smtplib.SMTP("smtp.gmail.com", 587) as server:
+            server.starttls()
+            server.login(sender_email, sender_password)
+            server.sendmail(sender_email, parent_email, msg.as_string())
 
-        # Get recommended courses based on engagement level
-        recommended_courses = course_recommendations[engagement_level]
-
-        return render_template("view_student.html", student=student, recommended_courses=recommended_courses)
+        return jsonify({"status": f"Email sent successfully to {parent_email}"})
     except Exception as e:
-        return f"An error occurred: {e}"
+        return jsonify({"status": f"Failed to send email: {e}"})
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -1,47 +1,79 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>View Student</title>
+    <title>Student Details</title>
     <style>
-        body {
+        /* Basic styling */
+        body, html {
+            margin: 0;
+            padding: 0;
             font-family: Arial, sans-serif;
-            background-color: #1c1c1c;
-            color: #ffffff;
+            color: #f0f0f0;
+            background-color: #121212;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        /* Container for the details */
+        .details-container {
+            background-color: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            max-width: 600px;
+            width: 90%;
             text-align: center;
         }
-        .student-name {
-            font-size: 24px;
-            font-weight: bold;
-            animation: pulse 1s infinite;
+
+        /* Headings */
+        h2 {
+            color: #ffa726;
+            margin-bottom: 15px;
         }
-        .course-list {
-            margin: 20px;
-            animation: slideIn 1s ease-out;
+        h3 {
+            color: #ffca28;
+            margin-top: 25px;
+            margin-bottom: 10px;
         }
-        .course-item:hover {
-            color: #4CAF50;
-            transform: scale(1.1);
+
+        /* Paragraph styling */
+        p {
+            background-color: #282828;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
         }
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+
+        /* List styling */
+        ul {
+            list-style: none;
+            padding: 0;
         }
-        @keyframes slideIn {
-            from { transform: translateX(-20px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+        li {
+            background-color: #333;
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 5px;
+            color: #bbdefb;
         }
     </style>
 </head>
 <body>
-    <h1>Student Details</h1>
-    <div class="student-name">{{ student['Name'] }}</div>
-    <h2>Recommended Courses</h2>
-    <div class="course-list">
-        {% for course in recommended_courses %}
-        <div class="course-item">{{ course }}</div>
-        {% endfor %}
+    <div class="details-container">
+        <h2>Details for {{ student_data.Name }}</h2>
+        <p><strong>Interaction Count:</strong> {{ student_data.interaction_count }}</p>
+        <p><strong>Quiz Scores:</strong> {{ student_data.quiz_scores }}</p>
+        <p><strong>Completion Rate:</strong> {{ student_data.completion_rate }}</p>
+        <p><strong>Parent Email:</strong> {{ student_data.parent_email }}</p>
+
+        <h3>Recommended Courses</h3>
+        <ul>
+            {% for course in recommended_courses %}
+            <li>{{ course }}</li>
+            {% endfor %}
+        </ul>
     </div>
 </body>
 </html>

@@ -1,63 +1,140 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student List</title>
     <style>
-        /* Add the 3D background effect here */
-        body::before, body::after {
-            content: "";
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            height: 100%;
+            font-family: Arial, sans-serif;
+            color: #fff;
+            background-color: #1c1c1c;
+        }
+        #list-container {
+            position: relative;
+            z-index: 1;
+            padding: 20px;
+            background-color: rgba(20, 20, 20, 0.8);
+            max-width: 800px;
+            margin: auto;
+            text-align: center;
+            border-radius: 10px;
+        }
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid #333;
+        }
+        th {
+            background-color: #333;
+        }
+        td {
+            background-color: rgba(50, 50, 50, 0.8);
+        }
+        a {
+            color: #08f7fe;
+            text-decoration: none;
+        }
+        a:hover {
+            color: #f7008e;
+        }
+        canvas {
             position: absolute;
             top: 0;
             left: 0;
-            width: 200%;
-            height: 200%;
-            z-index: -1;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 1%, transparent 1%);
-            background-size: 50px 50px;
-            animation: animateBackground 30s linear infinite;
-            opacity: 0.2;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
         }
-
-        body::after {
-            animation-direction: reverse;
-        }
-
-        @keyframes animateBackground {
-            from { transform: translateX(0) translateY(0); }
-            to { transform: translateX(-50px) translateY(-50px); }
-        }
-
-        /* Additional styles for table and animations */
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #1c1c1c;
-            color: #ffffff;
-            text-align: center;
-            overflow: hidden;
-            position: relative;
-        }
-        /* Remaining styles */
     </style>
 </head>
 <body>
-    <h1 class="slide-down">Student List</h1>
-    <table class="fade-in">
-        <thead>
+    <div id="list-container">
+        <h2>Student List</h2>
+        <table>
             <tr>
-                <th>Student Name</th>
-                <th>Action</th>
+                <th>Name</th>
+                <th>Interaction Count</th>
+                <th>Quiz Scores</th>
+                <th>Completion Rate</th>
+                <th>Parent Email</th>
+                <th>Actions</th>
             </tr>
-        </thead>
-        <tbody>
             {% for student in students %}
-            <tr class="slide-down">
-                <td>{{ student['Name'] }}</td>
-                <td><a href="{{ url_for('view', student_name=student['Name']) }}" class="hover-grow">View</a></td>
+            <tr>
+                <td>{{ student.Name }}</td>
+                <td>{{ student.interaction_count }}</td>
+                <td>{{ student.quiz_scores }}</td>
+                <td>{{ student.completion_rate }}</td>
+                <td>{{ student.parent_email }}</td>
+                <td>
+                    <a href="{{ url_for('view_student', student_name=student.Name) }}">View</a> | 
+                    <a href="{{ url_for('download_card', student_name=student.Name) }}">Download Card</a> | 
+                    <a href="{{ url_for('send_email', student_name=student.Name) }}">Send Email</a>
+                </td>
             </tr>
             {% endfor %}
-        </tbody>
-    </table>
+        </table>
+    </div>
+
+    <!-- Three.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Create a Three.js scene
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Adjust the camera position
+        camera.position.z = 5;
+
+        // Create particles
+        const particleCount = 2000;
+        const particles = new THREE.BufferGeometry();
+        const particlePositions = new Float32Array(particleCount * 3);
+        for (let i = 0; i < particleCount * 3; i++) {
+            particlePositions[i] = (Math.random() - 0.5) * 10;
+        }
+        particles.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+
+        // Particle material
+        const particleMaterial = new THREE.PointsMaterial({
+            color: 0x08f7fe,
+            size: 0.05,
+            transparent: true,
+            opacity: 0.7
+        });
+
+        // Create particle system
+        const particleSystem = new THREE.Points(particles, particleMaterial);
+        scene.add(particleSystem);
+
+        // Animation function
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Rotate particle system for a subtle effect
+            particleSystem.rotation.y += 0.001;
+            particleSystem.rotation.x += 0.0005;
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Adjust canvas on window resize
+        window.addEventListener('resize', () => {
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+        });
+    </script>
 </body>
 </html>
